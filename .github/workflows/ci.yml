@@ -1,0 +1,19 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test-and-eval-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      # Fails the build if pass rate, any category, or p95 latency regresses vs the committed baseline
+      - run: python -m llm_eval run --baseline baselines/baseline.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-dashboard
+          path: reports/dashboard.html
